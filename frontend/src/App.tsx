@@ -27,7 +27,6 @@ const MENU_OPTIONS = [
   '김치찌개',
   '된장찌개',
   '비빔밥',
-  '돈까스',
   '짬뽕',
   '제육볶음',
   '칼국수',
@@ -141,6 +140,7 @@ export default function App() {
       }
       setMenu(finalMenu);
       setDisplayMenu(finalMenu);
+      setSearchUrl(url);
       setSearchUrl(`${url}?filter=distance750m-budget15000-open`);
       setRecentMenus((prev) => {
         const next = [finalMenu, ...prev.filter((item) => item !== finalMenu)];
@@ -160,6 +160,12 @@ export default function App() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!menu && !isSpinning) return;
+    if (!mapSectionRef.current) return;
+    mapSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [isSpinning, menu]);
     if (!location) {
       return;
     }
@@ -189,6 +195,7 @@ export default function App() {
       title: `${rank}순위 후보`,
       description: `${location.address} · ${menu} · 750m · 1인 15,000원 이하 · 영업중`,
       url: `${searchUrl}#rank=${rank}`,
+
       description: `${location.address} 주변 ${menu} 식당`,
       url: `${searchUrl}?rank=${rank}`,
     }));
@@ -269,6 +276,7 @@ export default function App() {
           </section>
         ) : (
           <section className="menu-stage">
+            {!menu && !isSpinning ? (
             <div className={`roulette-display${isSpinning ? ' spinning' : ''}`} aria-live="assertive">
               <span className="menu-label">오늘의 메뉴</span>
               <strong className="menu-name">
@@ -292,6 +300,69 @@ export default function App() {
                 랜덤 메뉴 추첨하기
               </button>
             ) : (
+              <div
+                className={`menu-result${isSpinning ? ' spinning' : ''}`}
+                aria-live="assertive"
+                ref={mapSectionRef}
+              >
+                <span className="menu-label">오늘의 메뉴</span>
+                <strong className="menu-name">{displayMenu ?? '메뉴 추첨 중...'}</strong>
+                {!isSpinning && searchUrl && menu && (
+                  <a
+                    className="search-link"
+                    href={searchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    네이버 지도에서 "{location.address} {menu}" 검색 결과 보기
+                  </a>
+                )}
+                <p className="menu-subtext">최근 추천된 메뉴 3개는 자동으로 제외됩니다.</p>
+                <button
+                  type="button"
+                  onClick={handleRecommendation}
+                  className="draw-button secondary"
+                  disabled={isSpinning}
+                >
+                  {isSpinning ? '추첨 진행 중' : '다시 추첨하기'}
+                </button>
+              </div>
+            )}
+
+            {menu && carouselItems.length > 0 && (
+              <section className="carousel" aria-label="추천 식당 순위">
+                <div className="carousel-header">
+                  <h2>추천 식당 1~3순위</h2>
+                  <p>750m · 1인 15,000원 이하 · 영업중 조건에 맞는 식당을 리뷰 순으로 살펴보세요.</p>
+                </div>
+                <div className="carousel-viewport">
+                  <div
+                    className="carousel-track"
+                    style={{ transform: `translateX(-${activeCarouselIndex * 100}%)` }}
+                  >
+                    {carouselItems.map((item) => (
+                      <article
+                        key={item.id}
+                        className="carousel-item"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleCarouselClick(item.url)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            handleCarouselClick(item.url);
+                          }
+                        }}
+                      >
+                        <span className="carousel-rank">{item.title}</span>
+                        <strong className="carousel-title">{menu}</strong>
+                        <span className="carousel-description">{item.description}</span>
+                        <span className="carousel-link">네이버 플레이스 열기</span>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </section>
               <div className="result-area" ref={mapSectionRef}>
                 <div className="menu-display" aria-live="polite">
                   <span className="menu-label">오늘의 메뉴</span>
