@@ -24,6 +24,16 @@ const MENU_OPTIONS = [
   '터키 음식',
   '햄버거',
   '샌드위치',
+  '김치찌개',
+  '된장찌개',
+  '비빔밥',
+  '돈까스',
+  '짬뽕',
+  '제육볶음',
+  '칼국수',
+  '샐러드',
+  '회덮밥',
+  '파스타',
 ];
 const LOCATION_HINTS = [
   '예) 판교역 1번 출구',
@@ -53,6 +63,10 @@ export default function App() {
   const mapSectionRef = useRef<HTMLDivElement | null>(null);
   const rouletteIntervalRef = useRef<number | null>(null);
   const rouletteTimeoutRef = useRef<number | null>(null);
+  const [searchUrl, setSearchUrl] = useState<string | null>(null);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+  const mapSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -146,6 +160,18 @@ export default function App() {
       }
     };
   }, []);
+    if (!location) {
+      return;
+    }
+
+    const randomMenu = MENU_OPTIONS[Math.floor(Math.random() * MENU_OPTIONS.length)];
+    const query = `${location.address} ${randomMenu} 750m 15000원 이하 식당`;
+    const url = `https://map.naver.com/p/search/${encodeURIComponent(query)}`;
+
+    setMenu(randomMenu);
+    setSearchUrl(url);
+    setActiveCarouselIndex(0);
+  }, [location]);
 
   useEffect(() => {
     if (!menu) return;
@@ -163,6 +189,8 @@ export default function App() {
       title: `${rank}순위 후보`,
       description: `${location.address} · ${menu} · 750m · 1인 15,000원 이하 · 영업중`,
       url: `${searchUrl}#rank=${rank}`,
+      description: `${location.address} 주변 ${menu} 식당`,
+      url: `${searchUrl}?rank=${rank}`,
     }));
   }, [location, menu, searchUrl]);
 
@@ -259,6 +287,17 @@ export default function App() {
 
             {menu && (
               <div className="result-area" ref={mapSectionRef}>
+            {!menu ? (
+              <button type="button" onClick={handleRecommendation} className="draw-button">
+                랜덤 메뉴 추첨하기
+              </button>
+            ) : (
+              <div className="result-area" ref={mapSectionRef}>
+                <div className="menu-display" aria-live="polite">
+                  <span className="menu-label">오늘의 메뉴</span>
+                  <strong className="menu-name">{menu}</strong>
+                </div>
+
                 {searchUrl && (
                   <div className="map-panel">
                     <iframe
@@ -275,6 +314,7 @@ export default function App() {
                     <div className="carousel-header">
                       <h2>추천 식당 1~3순위</h2>
                       <p>750m · 1인 15,000원 이하 · 영업중 조건에 맞는 식당을 리뷰 순으로 살펴보세요.</p>
+                      <p>카드를 클릭하면 해당 네이버 플레이스를 새 창에서 확인할 수 있어요.</p>
                     </div>
                     <div className="carousel-viewport">
                       <div
