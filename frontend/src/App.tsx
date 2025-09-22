@@ -24,6 +24,15 @@ const MENU_OPTIONS = [
   '터키 음식',
   '햄버거',
   '샌드위치',
+  '김치찌개',
+  '된장찌개',
+  '비빔밥',
+  '짬뽕',
+  '제육볶음',
+  '칼국수',
+  '샐러드',
+  '회덮밥',
+  '파스타',
 ];
 const LOCATION_HINTS = [
   '예) 판교역 1번 출구',
@@ -53,6 +62,10 @@ export default function App() {
   const mapSectionRef = useRef<HTMLDivElement | null>(null);
   const rouletteIntervalRef = useRef<number | null>(null);
   const rouletteTimeoutRef = useRef<number | null>(null);
+  const [searchUrl, setSearchUrl] = useState<string | null>(null);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+  const mapSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -128,6 +141,7 @@ export default function App() {
       setMenu(finalMenu);
       setDisplayMenu(finalMenu);
       setSearchUrl(url);
+      setSearchUrl(`${url}?filter=distance750m-budget15000-open`);
       setRecentMenus((prev) => {
         const next = [finalMenu, ...prev.filter((item) => item !== finalMenu)];
         return next.slice(0, 3);
@@ -152,6 +166,24 @@ export default function App() {
     if (!mapSectionRef.current) return;
     mapSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [isSpinning, menu]);
+    if (!location) {
+      return;
+    }
+
+    const randomMenu = MENU_OPTIONS[Math.floor(Math.random() * MENU_OPTIONS.length)];
+    const query = `${location.address} ${randomMenu} 750m 15000원 이하 식당`;
+    const url = `https://map.naver.com/p/search/${encodeURIComponent(query)}`;
+
+    setMenu(randomMenu);
+    setSearchUrl(url);
+    setActiveCarouselIndex(0);
+  }, [location]);
+
+  useEffect(() => {
+    if (!menu) return;
+    if (!mapSectionRef.current) return;
+    mapSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [menu]);
 
   const carouselItems: CarouselItem[] = useMemo(() => {
     if (!location || !menu || !searchUrl) {
@@ -163,6 +195,9 @@ export default function App() {
       title: `${rank}순위 후보`,
       description: `${location.address} · ${menu} · 750m · 1인 15,000원 이하 · 영업중`,
       url: `${searchUrl}#rank=${rank}`,
+
+      description: `${location.address} 주변 ${menu} 식당`,
+      url: `${searchUrl}?rank=${rank}`,
     }));
   }, [location, menu, searchUrl]);
 
@@ -242,6 +277,25 @@ export default function App() {
         ) : (
           <section className="menu-stage">
             {!menu && !isSpinning ? (
+            <div className={`roulette-display${isSpinning ? ' spinning' : ''}`} aria-live="assertive">
+              <span className="menu-label">오늘의 메뉴</span>
+              <strong className="menu-name">
+                {displayMenu ?? '버튼을 눌러 점심 메뉴 룰렛을 돌려 보세요'}
+              </strong>
+              <p className="menu-subtext">최근 추천된 메뉴 3개는 자동으로 제외됩니다.</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleRecommendation}
+              className="draw-button"
+              disabled={isSpinning}
+            >
+              {isSpinning ? '메뉴 추첨 중...' : '랜덤 메뉴 추첨하기'}
+            </button>
+
+            {menu && (
+              <div className="result-area" ref={mapSectionRef}>
+            {!menu ? (
               <button type="button" onClick={handleRecommendation} className="draw-button">
                 랜덤 메뉴 추첨하기
               </button>
@@ -309,6 +363,60 @@ export default function App() {
                   </div>
                 </div>
               </section>
+              <div className="result-area" ref={mapSectionRef}>
+                <div className="menu-display" aria-live="polite">
+                  <span className="menu-label">오늘의 메뉴</span>
+                  <strong className="menu-name">{menu}</strong>
+                </div>
+
+                {searchUrl && (
+                  <div className="map-panel">
+                    <iframe
+                      key={searchUrl}
+                      src={searchUrl}
+                      title={`${menu} 네이버 지도 검색 결과`}
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+
+                {carouselItems.length > 0 && (
+                  <section className="carousel" aria-label="추천 식당 순위">
+                    <div className="carousel-header">
+                      <h2>추천 식당 1~3순위</h2>
+                      <p>750m · 1인 15,000원 이하 · 영업중 조건에 맞는 식당을 리뷰 순으로 살펴보세요.</p>
+                      <p>카드를 클릭하면 해당 네이버 플레이스를 새 창에서 확인할 수 있어요.</p>
+                    </div>
+                    <div className="carousel-viewport">
+                      <div
+                        className="carousel-track"
+                        style={{ transform: `translateX(-${activeCarouselIndex * 100}%)` }}
+                      >
+                        {carouselItems.map((item) => (
+                          <article
+                            key={item.id}
+                            className="carousel-item"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleCarouselClick(item.url)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                handleCarouselClick(item.url);
+                              }
+                            }}
+                          >
+                            <span className="carousel-rank">{item.title}</span>
+                            <strong className="carousel-title">{menu}</strong>
+                            <span className="carousel-description">{item.description}</span>
+                            <span className="carousel-link">네이버 플레이스 열기</span>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                )}
+              </div>
             )}
           </section>
         )}
