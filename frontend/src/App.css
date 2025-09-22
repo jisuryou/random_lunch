@@ -1,0 +1,374 @@
+:root {
+  color-scheme: light;
+  font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  background: #f2f4f8;
+  color: #1f2933;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #eef2ff 0%, #f2f4f8 55%, #e2e8f0 100%);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+.app {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.location-badge {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 999px;
+  padding: 10px 18px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.location-text {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-change {
+  background: #ffffff;
+  color: #4338ca;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.25);
+}
+
+.location-change:hover {
+  background: #eef2ff;
+}
+
+.stage {
+  width: min(640px, 100%);
+  display: flex;
+  justify-content: center;
+}
+
+.location-setup,
+.menu-stage {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 28px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  text-align: center;
+}
+
+.location-setup h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  color: #111827;
+}
+
+.location-form {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+}
+
+.location-form input {
+  flex: 1;
+  border-radius: 16px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 16px 20px;
+  font-size: 16px;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.location-form button {
+  border-radius: 16px;
+  padding: 16px 24px;
+  font-weight: 700;
+  font-size: 16px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
+  box-shadow: 0 18px 30px rgba(99, 102, 241, 0.35);
+}
+
+.location-error {
+  margin: 0;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.draw-button {
+  border-radius: 999px;
+  padding: 32px 48px;
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 30px 60px rgba(14, 165, 233, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.draw-button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 38px 70px rgba(14, 165, 233, 0.45);
+}
+
+.result-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.menu-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.menu-label {
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  color: #6366f1;
+  text-transform: uppercase;
+}
+
+.menu-name {
+  font-size: clamp(44px, 6vw, 64px);
+  line-height: 1.05;
+  color: #111827;
+  text-shadow: 0 18px 45px rgba(79, 70, 229, 0.25);
+}
+
+.map-panel {
+  width: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+.map-panel iframe {
+  display: block;
+  width: 100%;
+  height: 420px;
+  border: none;
+  background: #0f172a;
+}
+
+.carousel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.carousel-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #111827;
+}
+
+.carousel-header p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+.carousel-viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.6s ease;
+}
+
+.carousel-item {
+  min-width: 100%;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(14, 165, 233, 0.2));
+  border-radius: 24px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  color: #1e1b4b;
+  cursor: pointer;
+  box-shadow: 0 24px 50px rgba(79, 70, 229, 0.35);
+  border: 1px solid rgba(79, 70, 229, 0.25);
+}
+
+.carousel-item:focus-visible {
+  outline: 3px solid rgba(14, 165, 233, 0.7);
+  outline-offset: 4px;
+}
+
+.carousel-rank {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #312e81;
+}
+
+.carousel-title {
+  font-size: 28px;
+  margin: 0;
+  color: #0f172a;
+}
+
+.carousel-description {
+  font-size: 16px;
+  color: #312e81;
+}
+
+.carousel-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+@media (max-width: 600px) {
+  .app {
+    padding: 32px 12px;
+  }
+
+  .location-badge {
+    position: static;
+    margin-bottom: 24px;
+    align-self: flex-end;
+  }
+
+  .stage {
+    width: 100%;
+  }
+
+  .location-setup,
+  .menu-stage {
+    padding: 36px 24px;
+    border-radius: 22px;
+  }
+
+  .location-form {
+    flex-direction: column;
+  }
+
+  .location-form button {
+    width: 100%;
+  }
+
+  .map-panel iframe {
+    height: 320px;
+  }
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  padding: 24px;
+  z-index: 20;
+}
+
+.dialog {
+  width: min(420px, 100%);
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 32px 28px;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dialog h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #0f172a;
+}
+
+.dialog-description {
+  margin: 0;
+  color: #475569;
+  font-size: 15px;
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dialog-form input {
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 15px;
+}
+
+.dialog-form button {
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
+}
+
+.dialog-error {
+  margin: 0;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.dialog-hint {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dialog-actions .secondary {
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: #e2e8f0;
+  color: #1f2937;
+  font-weight: 600;
+}
