@@ -5,6 +5,25 @@ import type { LocationPoint } from './types';
 
 const STORAGE_KEY = 'random-lunch-location';
 const MENU_OPTIONS = [
+  '규동',
+  '우동',
+  '모밀',
+  '돈카츠',
+  '돈까스',
+  '라멘',
+  '초밥',
+  '불고기',
+  '칼국수',
+  '냉면',
+  '김치찌개',
+  '제육볶음',
+  '중국집',
+  '베트남 음식',
+  '태국 음식',
+  '인도 음식',
+  '터키 음식',
+  '햄버거',
+  '샌드위치',
   '김치찌개',
   '된장찌개',
   '비빔밥',
@@ -35,6 +54,15 @@ export default function App() {
   const [locationInput, setLocationInput] = useState('');
   const [locationError, setLocationError] = useState<string | null>(null);
   const [menu, setMenu] = useState<string | null>(null);
+  const [displayMenu, setDisplayMenu] = useState<string | null>(null);
+  const [searchUrl, setSearchUrl] = useState<string | null>(null);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+  const [recentMenus, setRecentMenus] = useState<string[]>([]);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const mapSectionRef = useRef<HTMLDivElement | null>(null);
+  const rouletteIntervalRef = useRef<number | null>(null);
+  const rouletteTimeoutRef = useRef<number | null>(null);
   const [searchUrl, setSearchUrl] = useState<string | null>(null);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
@@ -73,11 +101,65 @@ export default function App() {
   const handleLocationSelect = useCallback((value: LocationPoint) => {
     setLocation(value);
     setMenu(null);
+    setDisplayMenu(null);
     setSearchUrl(null);
     setActiveCarouselIndex(0);
   }, []);
 
   const handleRecommendation = useCallback(() => {
+    if (!location || isSpinning) {
+      return;
+    }
+
+    const availableMenus = MENU_OPTIONS.filter((item) => !recentMenus.includes(item));
+    const pool = availableMenus.length > 0 ? availableMenus : MENU_OPTIONS;
+    const finalMenu = pool[Math.floor(Math.random() * pool.length)];
+    const query = `${location.address} ${finalMenu}`;
+    const url = `https://map.naver.com/p/search/${encodeURIComponent(query)}`;
+
+    if (rouletteIntervalRef.current) {
+      window.clearInterval(rouletteIntervalRef.current);
+    }
+    if (rouletteTimeoutRef.current) {
+      window.clearTimeout(rouletteTimeoutRef.current);
+    }
+
+    setIsSpinning(true);
+    setMenu(null);
+    setDisplayMenu(null);
+    setSearchUrl(null);
+    setActiveCarouselIndex(0);
+
+    rouletteIntervalRef.current = window.setInterval(() => {
+      const random = MENU_OPTIONS[Math.floor(Math.random() * MENU_OPTIONS.length)];
+      setDisplayMenu(random);
+    }, 90);
+
+    rouletteTimeoutRef.current = window.setTimeout(() => {
+      if (rouletteIntervalRef.current) {
+        window.clearInterval(rouletteIntervalRef.current);
+      }
+      setMenu(finalMenu);
+      setDisplayMenu(finalMenu);
+      setSearchUrl(`${url}?filter=distance750m-budget15000-open`);
+      setRecentMenus((prev) => {
+        const next = [finalMenu, ...prev.filter((item) => item !== finalMenu)];
+        return next.slice(0, 3);
+      });
+      setIsSpinning(false);
+    }, 3200);
+  }, [isSpinning, location, recentMenus]);
+
+  useEffect(() => {
+    return () => {
+      if (rouletteIntervalRef.current) {
+        window.clearInterval(rouletteIntervalRef.current);
+      }
+      if (rouletteTimeoutRef.current) {
+        window.clearTimeout(rouletteTimeoutRef.current);
+      }
+    };
+  }, []);
     if (!location) {
       return;
     }
@@ -105,6 +187,8 @@ export default function App() {
     return [1, 2, 3].map((rank) => ({
       id: rank,
       title: `${rank}순위 후보`,
+      description: `${location.address} · ${menu} · 750m · 1인 15,000원 이하 · 영업중`,
+      url: `${searchUrl}#rank=${rank}`,
       description: `${location.address} 주변 ${menu} 식당`,
       url: `${searchUrl}?rank=${rank}`,
     }));
@@ -185,6 +269,24 @@ export default function App() {
           </section>
         ) : (
           <section className="menu-stage">
+            <div className={`roulette-display${isSpinning ? ' spinning' : ''}`} aria-live="assertive">
+              <span className="menu-label">오늘의 메뉴</span>
+              <strong className="menu-name">
+                {displayMenu ?? '버튼을 눌러 점심 메뉴 룰렛을 돌려 보세요'}
+              </strong>
+              <p className="menu-subtext">최근 추천된 메뉴 3개는 자동으로 제외됩니다.</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleRecommendation}
+              className="draw-button"
+              disabled={isSpinning}
+            >
+              {isSpinning ? '메뉴 추첨 중...' : '랜덤 메뉴 추첨하기'}
+            </button>
+
+            {menu && (
+              <div className="result-area" ref={mapSectionRef}>
             {!menu ? (
               <button type="button" onClick={handleRecommendation} className="draw-button">
                 랜덤 메뉴 추첨하기
@@ -211,6 +313,7 @@ export default function App() {
                   <section className="carousel" aria-label="추천 식당 순위">
                     <div className="carousel-header">
                       <h2>추천 식당 1~3순위</h2>
+                      <p>750m · 1인 15,000원 이하 · 영업중 조건에 맞는 식당을 리뷰 순으로 살펴보세요.</p>
                       <p>카드를 클릭하면 해당 네이버 플레이스를 새 창에서 확인할 수 있어요.</p>
                     </div>
                     <div className="carousel-viewport">
